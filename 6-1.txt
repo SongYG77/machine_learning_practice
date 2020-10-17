@@ -1,0 +1,82 @@
+import keras
+import numpy as np
+from keras.layers import Dense
+from keras.models import Sequential
+
+
+w = 10 
+b = 2
+ : 원래 우리는 이 값을 모른다.
+
+x_train = np.array([[0],[1]])
+y_train = x_train * w + b
+x_test = np.array([[2],[2]])
+y_test = x_test * w + b
+
+여기까지는 우리가 만들어 놓은 모델이다. 
+y = 10*x + b
+x가 2일 때 22가 나오는지 알아보고 싶다.
+여기 아래는 w와 b값이 뭔지 모른다.
+
+
+
+model = Sequential() # 순차 모델 만들기
+# 모델은 (*, 1) 형태의 배열을 인풋으로 받고
+# (*, 2) 형태의 배열을 출력합니다
+레이어는 하나이다
+
+model.add(Dense(2,input_shape=(1,)))
+# 첫 번째 레이어 이후에는,
+# 인풋의 크기를 특정하지 않아도 됩니다:
+인풋 하나에 아웃풋 2개를 뜻한다. Dense부분의 2가 아웃풋이 2개를 뜻함
+
+
+model.summary()
+서머리에 요약을 보여준다.
+
+model.compile (loss='mean_squared_error',optimizer='SGD')
+컴파일러를 하는데 로스랑 컴파일의 부분이다.
+
+model_fit = model.fit(x_train,y_train,batch_size=3,epochs=100,verbose=2)
+값을 채운다. 그런데 케라스를 통해서 모델을 조금씩 바꿔준다. batch size는 데이터를 쪼개는 것이다. 그래서 통채로 하지 않고 3개로 나눈다는 뜻.
+epochs는 몇번 학습을 시킬 것인지.
+verbose는 진행과정을 볼지 말지이다.
+#callbacks=[keras.callbacks.TensorBoard(log_dir='./graph', histogram_freq=1)]
+# fit함수의 첫번째 인자는 x 입력값
+# fit함수의 두번째 인자는 y 입력값
+# fit함수의 세번째 인자는 학습시킬때의 묶음 샘플수
+# fit함수의 두번째 인자는 학습의 횟수
+# fit함수의 두번째 인자는 verbose 학습 진행과정을 보여줄
+# (*, 2) 형태의 배열을 출력합니다
+
+반복을 많이 할수록 로스가 줄어들어 근사값이 나온다.
+callbacks 부분은 텐서플로우에서 내가 만든 모델을 스텝별로 볼 수 있다.
+
+y_hat = model.predict(x_test)
+print(y_hat)
+print("Y-test:",y_test)
+
+
+============================
+케러스를 이용한 xor 예제
+
+import numpy as np
+from keras.models import Sequential
+from keras.layers.core import Activation, Dense
+
+training_data = np.array([[0,0],[0,1],[1,0],[1,1]], "float32")
+
+target_data = np.array([[0],[1],[1],[0]], "float32")
+
+model = Sequential()
+model.add(Dense(32, input_dim=2, activation='sigmoid'))
+model.add(Dense(1, activation='sigmoid'))
+이번엔 인풋값이 두개이다. 2계층이기 때문에 처음 인풋에서 32개의 출력이 연결된다.
+그리고 32개가 있는 레이어는 1개의 같은 값으로 간다.
+여기서는 두개의 레이어여서 클래스 구분이 필요해 activation을 사용한 것이다.
+
+model.compile(loss='mean_squared_error', optimizer='adam', metrics=['binary_accuracy'])
+
+model.fit(training_data, target_data, epochs=1000, verbose=2)
+
+print( model.predict(training_data))
