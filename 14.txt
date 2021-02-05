@@ -1,0 +1,153 @@
+기계 14주차
+
+RNN
+신경망이 연산할 때 이전값이 현재값에 영향을 끼친다.
+연속성이 있음
+
+음악 동영상 에세이 시 소스 주가 등.
+
+심플 RNN(vanilla? RNN)(Recurrent Neural RNN)
+
+스텝을 거칠때마다 이전의 스테이트의 값을 업데이트.
+ht = fw(ht-1 , xt)
+기본적인 형태.
+
+================================
+GAN(적대적 신경망)
+GAN의 예(컴퓨터가 만든 사람이미지)
+
+하나는 계속 가짜를 만든다
+다른 하나는 계속 가짜인지 아닌지 판별한다.
+서로의 목적이 달라 적대적이라 한다.
+
+만드는건 생성자.
+판별은 식별자.
+
+랜덤노이즈로 생성자(generator network)는 가짜 이미지를 만들고 이 이미지들과 진짜 이미지(training set)를 가지고 식별자는 진짜인지 가짜인지 구분합니다. 
+
+생성자(generator)
+가짜를 만드는 공장.(원래 실제 이미지를 가지고 가짜를 만든것)
+DCGAN은 생성자가 가짜 이미지 생성시 CNN이용
+약간의 차이가있다./
+
+1. 옵티마이저를 사용하는 최적화 과정이나 컴파일 과정이 없음(판병과 학습이 이곳 생성자에서 일어나는게 아니기 때문)
+2. 일부 매개변수를 삭제하는 풀링 과정이 없고 대신 패딩과정이 포함
+입력과 출력 크기를 똑같이 맞추기 위해.
+
+필수적으로 필요한 옵션:
+배치정규화(평균 0 표준편차1이 되도록 재배치)
+활성화 함수로 ReLU함수, 판별자로 넘겨 주기 직전에 tanh함수
+
+{활성화 함수 잠시 설명
+sigmoid = 0과 1 로 나타낸다. 일정이상 넘으면 1 아니면 0
+ReLU = 0보다 작으면 0 아니면 x값을 가진다.
+LeakyReLU = ReLU와 비슷하지만 0일때 0이 아닌 0.1x과 같이 작은 값을 가진다.
+}
+
+생성자 부분을 보면 비슷하지만 컴파일과 fit 부분이 없는 것을 볼 수 있다.
+dens 이미지인풋 leakyrelu사용
+gejerator = Squential()
+batchnormalization
+reshape
+upsampling2D
+conv2D 패딩
+batchnormalization
+Activation(leakyReLU)
+upsampling
+Conv2d(tanh)
+패딩
+마지막 tanh해주는게 가장 좋아서 쓴다.
+
+
+판별자(Discriminaator)
+discriminator = Squential()
+conv2d 패딩
+Activation(leakyReLU)
+dropout()
+conv2d 패딩
+Activation(leakyReLU)
+dropout()
+flatten
+dense(sigmoid)
+컴파일
+오버피팅방지로 드랍아웃도 해줌
+참 거짓이므로 시그모이드와 컴파일을 바이너리로 하는것이다.
+
+
+적대적 신경망 실행하기.
+ginput = Input(shape = (100,))
+dis_output = discriminator(generator(ginput))
+가짜 이미지를 넣고 판별자를 돌려 결과를 만듬
+gan = Model(ginput, dis_output)
+컴파일
+서머리
+
+진짜 이미지와 가짜 이미지를 가지고 모델을 만든다.
+이때 가짜는 점점 더 정교화된 가짜를 만들고
+진짜는 판별이 점점 정교화된다,
+epoch를 돌면 돌수록 정교해진다.
+
+unsupervisied Learing 비지도학습
+생성자는 비지도학습이다.  누군가 데이터를 준 것이 아니다.
+
+supervised Learning
+판별자는 지도학습입니다. 가짜인지 진짜인지 원래 있기 때문에 지도학습입니다.
+
+Auto Encoder
+데이터를 효율적으로 코딩 즉 압축.
+데이터를 효율적으로 나타내기 위해서 고차원을 저차원으로.
+임력층과 출력층이 같도록 한다. 은닉층을 기준으로 좌우 대칭
+
+입력층에서 특징을 뽑아서 아웃풋이 나온다. 학습으로 입력의 특징들을 잘 뽑아내서 다시 역으로 뽑아내면. 아웃풋이 원래 있는 인풋 형태대로 복원.
+
+인풋을 넣어 인코드 하면 차원이 축소된다 input보다 작은 레이어로 은닉층에 있는 것이다.(특징을 추출)
+반대로 복원으로 디코드해 아웃풋을 인풋 형태로 복원.
+
+히든레이어가 하나면 싱클 오토인코더
+여러개면 스텍트 오토인코더(stacked)
+이것도 레이어가 깊어질 수록 성능이 향상된다.
+
+신경망 기반 비지도 학습기법,
+차원축소 이미지압축 이미지노이즈제거 이미지생성 등에 사용되는 신경망 구조.
+
+autoencoder = Sequential()
+
+인코딩
+conv2d(16 relu padding)
+max pooling2d(padding)
+conv2d(8 relu padding)
+max pooling2d(padding)
+conv2d(8 relu padding)
+
+디코딩
+conv2d(8 relu padding)
+upsampling2d()
+conv2d(8 relu padding)
+upsampling2d()
+conv2d(16 relu padding)
+upsampling2d()
+conv2d(1 sigmoid padding)
+
+전체 구조
+서머리
+컴파일
+fit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
